@@ -714,6 +714,19 @@ body.home .site-content { padding-top: 0; }
 
 hr { border: 0; border-top: 1px dotted var(--rule); height: 0; margin: 2em 0; }
 
+/* --- boxes --------------------------------------------------------------------------------- */
+/* `::: {.center}` ... `:::` in the markdown (dpress 0.82.0): a box only puts the class on the page,
+   and what the class looks like is decided here. Pictures are inline, so centring the text
+   centres them - two of them side by side, as the box was written for. */
+
+.entry-content .center { text-align: center; }
+/* A lone picture before a list is floated beside it on a wide screen (above). Asked to be
+   centred, it is not: the float would put it back on the left. */
+@media (min-width: 700px) {
+    .entry-content .center p:has(> img:only-child):has(+ ul) { float: none; margin: 0 0 10px; max-width: none; }
+    .entry-content .center p:has(> img:only-child):has(+ ul) + ul { overflow: visible; }
+}
+
 /* --- callouts ----------------------------------------------------------------------------- */
 /* `> [!WARNING]` in the markdown. The site drew these by hand as `.gopherlab-panel`; dpress
  * renders them itself now, so what was markup in the document is a class here. */
