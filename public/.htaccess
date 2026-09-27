@@ -19,6 +19,22 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_URI} ^(.+?)/+$
 RewriteRule ^ %1 [R=301,L,QSA]
 
+# The Sphinx site's addresses. docs.dynart.net published every page at the root, as `.html` -
+# `/dos-game-engine/BASICS/VGA.html` - and those are in bookmarks, search results and other
+# people's pages. Here the same page is `/docs/dos-game-engine/BASICS/VGA`, so each old one is a
+# 301 to it, `#fragment` and all (the browser keeps that, and the build gives every heading
+# Sphinx's id). A folder's `index.html` is the folder's page; the root `index.html` is `/docs`.
+#
+# Only on docs.dynart.net: that host is the one with the old addresses, and a local copy under a
+# subfolder would be sent to a `/docs` outside it. Anything already under `/docs/` is the Docs
+# plugin's to answer - it takes `.html` off its own addresses itself.
+RewriteCond %{HTTP_HOST} ^docs\.dynart\.net$ [NC]
+RewriteRule ^index\.html$ /docs [R=301,L]
+RewriteCond %{HTTP_HOST} ^docs\.dynart\.net$ [NC]
+RewriteRule ^(?!docs/)(.+)/index\.html$ /docs/$1 [R=301,L]
+RewriteCond %{HTTP_HOST} ^docs\.dynart\.net$ [NC]
+RewriteRule ^(?!docs/)(.+)\.html$ /docs/$1 [R=301,L]
+
 # Everything that is not a real file or directory goes to the front controller.
 # The router reads the path from the `route` parameter, so the rewrite has to pass it on.
 RewriteCond %{REQUEST_FILENAME} !-f
