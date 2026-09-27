@@ -1,0 +1,28 @@
+<?php
+/**
+ * The reading layout - a post, a page, a category, a tag, and the account screens
+ *
+ * The default, so every kind of page falls back to it. Category and tag listings read like a
+ * post here on purpose: same column, same sidebar, and the only thing that changes is what is
+ * in the column. That is a decision expressed by *not* writing `layout-archive.phtml`.
+ */
+$sidebar = $places->render('sidebar');
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<?= $this->fetch('theme:partial/head', ['title' => $title ?? '']) ?>
+</head>
+<body class="<?= esc_attr($layout_kind ?? '') ?>">
+<?= $this->fetch('theme:partial/header') ?>
+<div class="site-content">
+    <div class="container content-area">
+        <main class="primary"><?= $this->block('content') ?></main>
+        <?php if ($sidebar !== ''): ?>
+            <aside class="sidebar"><?= $sidebar ?></aside>
+        <?php endif ?>
+    </div>
+</div>
+<?= $this->fetch('theme:partial/footer') ?>
+</body>
+</html>

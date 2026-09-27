@@ -1,0 +1,47 @@
+<?php
+/**
+ * The front page
+ *
+ * The same two columns as the reading layout, and one thing more: the featured strip, which is
+ * markup no other page has. `home_top` is a place drawn only here, so a block put in it is on
+ * this page and on no other - with no visibility rule anywhere.
+ *
+ * The strip itself is rendered by `content/list.phtml`, which is where `$featured` arrives.
+ */
+$sidebar = $places->render('sidebar');
+$top = $places->render('home_top');
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<?= $this->fetch('theme:partial/head', ['title' => $title ?? '']) ?>
+</head>
+<body class="<?= esc_attr($layout_kind ?? '') ?>">
+<?= $this->fetch('theme:partial/header') ?>
+<div class="site-content">
+    <?php // inside the content area rather than above it, so a block put here sits on the same
+          // surface as everything else on the page instead of on the darker page behind it ?>
+    <?php if ($top !== ''): ?>
+        <div class="container home-top"><?= $top ?></div>
+    <?php endif ?>
+    <?php // **One** box for the strip and the two columns, and not the two the front page used
+          // to have. They are separate rows of one grid, which is what lets the four small
+          // cards move between them: full width beside the picture on a wide screen, and in
+          // the reading column with the sidebar beside them on a tablet. Two containers could
+          // not do that - there is no CSS that moves a box from one parent to another, and
+          // the alternative is the four rendered twice and one copy hidden.
+          //
+          // `content/list.phtml` fills the `featured` block and the layout prints it here:
+          // blocks accumulate across a render, so a template can hand the layout something
+          // that does not belong inside its own column. ?>
+    <div class="container home-area">
+        <?= $this->block('featured') ?>
+        <main class="primary"><?= $this->block('content') ?></main>
+        <?php if ($sidebar !== ''): ?>
+            <aside class="sidebar"><?= $sidebar ?></aside>
+        <?php endif ?>
+    </div>
+</div>
+<?= $this->fetch('theme:partial/footer') ?>
+</body>
+</html>

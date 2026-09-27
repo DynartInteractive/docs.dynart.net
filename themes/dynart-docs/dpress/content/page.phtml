@@ -1,0 +1,58 @@
+<?php
+/**
+ * A page - the same reading column as a post, with its breadcrumb
+ *
+ * Copied from the CMS's own and changed in three places: the title takes the theme's heading
+ * size, the prose gets the surface a post's prose gets, and the CMS's "In this section" list
+ * of child pages is left out - the menu is how this site is navigated, and a second index at
+ * the foot of a page is furniture. The breadcrumb stays: that says where you *are*.
+ */
+?>
+<?php $this->useLayout($layout ?? 'dpress:layout') ?>
+<?php $this->startBlock('content') ?>
+<?php // says this page is not saved; renders nothing when it is not a preview ?>
+<?= $this->fetch('dpress:content/preview-bar', ['preview' => $preview ?? false]) ?>
+    <?php if (!empty($ancestors)): ?>
+        <nav class="breadcrumb">
+            <a href="<?= esc_attr(route_url('/')) ?>">Home</a>
+            <?php foreach ($ancestors as $ancestor): ?>
+                / <a href="<?= esc_attr(route_url($ancestor->slug === '' ? '/' : '/'.$ancestor->slug)) ?>"><?= esc_html($ancestor->title) ?></a>
+            <?php endforeach ?>
+        </nav>
+    <?php endif ?>
+    <article>
+        <h1 class="entry-title"><?= esc_html($content->title) ?></h1>
+        <?php if (!$content->isPublished()): ?><p class="meta"><strong>draft</strong></p><?php endif ?>
+        <?php if (!empty($featured)): ?>
+            <?php // Eager: this sits above the fold and is the largest thing on the page, so the
+                  // default lazy-load would keep the browser from starting it until layout has
+                  // run - see the lead card in `content/list.phtml`. ?>
+            <p class="featured"><?= $mediaView->tag($featured, 'medium',
+                ['loading' => 'eager', 'fetchpriority' => 'high']) ?></p>
+        <?php endif ?>
+        <div class="entry-content">
+            <?php if ($show_lead ?? true): ?><?= $content->lead_html ?><?php endif ?>
+            <?= $body_html ?? $content->body_html ?>
+        </div>
+        <?= $this->fetch('dpress:content/pages', [
+            'page' => $page ?? 1, 'page_count' => $page_count ?? 1,
+            'prev_url' => $prev_url ?? '', 'next_url' => $next_url ?? '',
+            'page_urls' => $page_urls ?? [],
+        ]) ?>
+        <?php if (!empty($attachments)): ?>
+            <h2 class="attachments-title">Attachments</h2>
+            <ul class="attachments">
+                <?php foreach ($attachments as $row): ?>
+                    <li>
+                        <span class="attachment-icon"><?= $mediaView->icon($row['category']) ?></span>
+                        <a href="<?= esc_attr($mediaView->urlOfPath($row['path'])) ?>"><?= esc_html($row['title'] ?: $row['file_name']) ?></a>
+                    </li>
+                <?php endforeach ?>
+            </ul>
+        <?php endif ?>
+    </article>
+    <?php // Outside the article, because what goes here is *about* the thing that was just
+          // read rather than part of it - comments, a newsletter box, related posts. Nothing
+          // renders while the place is empty, which is every site that has put no block in it. ?>
+    <?= $places->render('after_content') ?>
+<?php $this->endBlock() ?>

@@ -1,0 +1,60 @@
+<?php
+/**
+ * A post being read
+ *
+ * The order the original uses: the categories above the title as chips, then the title, then the
+ * date, and the prose on its own surface. The featured picture is deliberately *not* here - the
+ * blog hides it on a single post, where it has already been seen on the card that led here.
+ */
+$this->useLayout($layout ?? 'dpress:layout');
+?>
+<?php $this->startBlock('content') ?>
+<?php // says this page is not saved; renders nothing when it is not a preview ?>
+<?= $this->fetch('dpress:content/preview-bar', ['preview' => $preview ?? false]) ?>
+    <article>
+        <?php if (!empty($categories)): ?>
+            <p class="cat-links">
+                <?php foreach ($categories as $category): ?>
+                    <a href="<?= esc_attr(route_url('/category/'.$category['slug'])) ?>"><?= esc_html($category['name']) ?></a>
+                <?php endforeach ?>
+            </p>
+        <?php endif ?>
+        <h1 class="entry-title"><?= esc_html($content->title) ?></h1>
+        <p class="meta">
+            <?php if (($author ?? '') !== ''): ?>by <?= esc_html($author) ?> &mdash; <?php endif ?>
+            <?= $dates->tag($content->published_at) ?>
+            <?php if (!$content->isPublished()): ?> &middot; <strong>draft</strong><?php endif ?>
+        </p>
+        <div class="entry-content">
+            <?php if ($show_lead ?? true): ?><?= $content->lead_html ?><?php endif ?>
+            <?= $body_html ?? $content->body_html ?>
+        </div>
+        <?= $this->fetch('dpress:content/pages', [
+            'page' => $page ?? 1, 'page_count' => $page_count ?? 1,
+            'prev_url' => $prev_url ?? '', 'next_url' => $next_url ?? '',
+            'page_urls' => $page_urls ?? [],
+        ]) ?>
+        <?php if (!empty($tags)): ?>
+            <p class="tags">
+                <?php foreach ($tags as $tag): ?>
+                    <a class="tag" href="<?= esc_attr(route_url('/tag/'.$tag['slug'])) ?>">#<?= esc_html($tag['name']) ?></a>
+                <?php endforeach ?>
+            </p>
+        <?php endif ?>
+        <?php if (!empty($attachments)): ?>
+            <h2>Attachments</h2>
+            <ul class="attachments">
+                <?php foreach ($attachments as $row): ?>
+                    <li>
+                        <span class="attachment-icon"><?= $mediaView->icon($row['category']) ?></span>
+                        <a href="<?= esc_attr($mediaView->urlOfPath($row['path'])) ?>"><?= esc_html($row['title'] ?: $row['file_name']) ?></a>
+                    </li>
+                <?php endforeach ?>
+            </ul>
+        <?php endif ?>
+    </article>
+    <?php // Outside the article, because what goes here is *about* the thing that was just
+          // read rather than part of it - comments, a newsletter box, related posts. Nothing
+          // renders while the place is empty, which is every site that has put no block in it. ?>
+    <?= $places->render('after_content') ?>
+<?php $this->endBlock() ?>

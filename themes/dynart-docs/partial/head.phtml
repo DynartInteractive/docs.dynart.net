@@ -1,0 +1,34 @@
+<?php // Everything both layouts share above the fold. `theme:` is this theme's own namespace -
+      // `dpress:` is for overriding what the CMS ships, and this is not an override of anything. ?>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= esc_html(($title ?? '').($title ?? '' ? ' – ' : '').($site_name ?? '')) ?></title>
+<?php if (!empty($site_icon)): ?>
+    <link rel="icon" href="<?= esc_attr($site_icon) ?>">
+    <link rel="apple-touch-icon" href="<?= esc_attr($site_icon) ?>">
+<?php endif ?>
+<?php // The fonts, started now rather than when the stylesheet has been parsed and something has
+      // finally needed one. Without this the page paints in the fallback face and swaps a moment
+      // later, which is the flicker.
+      //
+      // `crossorigin` is required even though the file is on this very origin: a font is always
+      // fetched in CORS mode, and a preload without it is a *second*, unusable download.
+      //
+      // And no `?v=` - `false` - because the `url()` inside the stylesheet has none either, and
+      // two spellings of one file is two downloads with the preload matching neither. ?>
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="<?= esc_attr($theme->url('roboto-condensed-latin.woff2', false)) ?>">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="<?= esc_attr($theme->url('roboto-condensed-latin-ext.woff2', false)) ?>">
+<link rel="stylesheet" href="<?= esc_attr($theme->url('style.css')) ?>">
+
+<?php // The header panel below 780px. Two lines and one small file, and both only when the
+      // file is there - a theme without it is a theme whose menu is simply always open.
+      //
+      // The class is written **inline** rather than by the file: the stylesheet hides the
+      // panel under it, and a deferred script setting it is a panel that paints open and
+      // then vanishes. The behaviour has no such hurry, so that part is deferred. ?>
+<?php if ($theme->exists('nav.js')): ?>
+    <script>document.documentElement.className += ' js-nav';</script>
+    <script src="<?= esc_attr($theme->url('nav.js')) ?>" defer></script>
+<?php endif ?>

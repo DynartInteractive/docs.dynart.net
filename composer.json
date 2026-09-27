@@ -1,0 +1,57 @@
+{
+    "name": "dynart/dpress-app",
+    "description": "A dpress site.",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "_require": [
+        "`>=0.14 <1.0` rather than `^0.14`: below 1.0 the caret pins the *minor*, so `^0.13`",
+        "refused 0.14 and a server quietly stayed a release behind. This site follows dpress",
+        "forward through 0.x and stops at 1.0, which is where the promise about breaking",
+        "changes starts meaning something."
+    ],
+    "require": {
+        "php": ">=8.0",
+        "dynart/dpress": ">=0.14 <1.0"
+    },
+    "_repositories": [
+        "One manifest for the machine the packages are written on and for a server that has",
+        "never seen them.",
+        "",
+        "The checkouts next to this one win when they are there, symlinked, so editing dpress",
+        "is editing this site. The pattern is a brace glob on purpose: a path repository whose",
+        "directory is missing is a hard error, but one whose *glob* matches nothing is simply",
+        "empty - so on a server the three below it answer instead, from the tags.",
+        "",
+        "All three have to be named here. Composer only reads `repositories` from the root",
+        "package, so the ones inside dpress's own composer.json are ignored once dpress is a",
+        "dependency, and micro would be looked for on Packagist, where it is not."
+    ],
+    "repositories": {
+        "dynart-local": {
+            "type": "path",
+            "url": "../dynart-{micro,micro-entities,dpress}",
+            "options": {
+                "symlink": true
+            }
+        },
+        "dynart-dpress": {
+            "type": "vcs",
+            "url": "https://github.com/goph-R/dynart-dpress.git"
+        },
+        "dynart-micro": {
+            "type": "vcs",
+            "url": "https://github.com/goph-R/dynart-micro.git"
+        },
+        "dynart-micro-entities": {
+            "type": "vcs",
+            "url": "https://github.com/goph-R/dynart-micro-entities.git"
+        }
+    }
+}

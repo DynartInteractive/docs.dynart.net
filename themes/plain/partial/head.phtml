@@ -1,0 +1,10 @@
+<?php // Everything both layouts have in common, so that adding a font or a meta tag is one edit
+      // rather than two that drift. `theme:` is the theme's own namespace - `dpress:` would be
+      // claiming a name in the CMS's for a file the CMS does not ship. ?>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?= esc_html(($title ?? '').($title ?? '' ? ' – ' : '').($site_name ?? '')) ?></title>
+<?php if (!empty($site_icon)): ?>
+    <link rel="icon" href="<?= esc_attr($site_icon) ?>">
+<?php endif ?>
+<link rel="stylesheet" href="<?= esc_attr($theme->url('style.css')) ?>">

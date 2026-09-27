@@ -1,0 +1,122 @@
+<?php
+/**
+ * The front page and the archives
+ *
+ * One template for both, the way the CMS ships it: the front page is this plus `$featured_posts`, and
+ * a category or a tag is this with a heading on it.
+ *
+ * `$thumbnails` is keyed by content id and cost one query for the whole page.
+ */
+$this->useLayout($layout ?? 'dpress:layout');
+$featured_posts = $featured_posts ?? [];
+?>
+<?php if ($featured_posts !== []): ?>
+    <?php // into the layout's `featured` block rather than into `content`, because the strip is
+          // full width and the content is a 70% column ?>
+    <?php $this->startBlock('featured') ?>
+        <section class="featured<?= count($featured_posts) > 1 ? '' : ' featured-solo' ?>">
+            <?php $lead = $featured_posts[0] ?>
+            <?php // `has-image` decides where the title goes: over the picture when there is one,
+                  // and in a panel of its own when there is not. A post need not have a picture,
+                  // and an overlay with nothing under it is a card with no height at all.
+                  //
+                  // An `article` with links inside it, and not one big link around the lot: the
+                  // card carries a lead and a "Read more" on a narrow screen, and a link inside
+                  // a link is not a thing HTML has. The picture is `aria-hidden` and out of the
+                  // tab order, so the same destination is not offered three times over. ?>
+            <article class="featured-lead<?= isset($thumbnails[$lead['id']]) ? ' has-image' : '' ?>">
+                <?php if (isset($thumbnails[$lead['id']])): ?>
+                    <?php // **Eager, and only this one.** `MediaView::tag()` lazy-loads by default,
+                          // which is right for every card below the fold and wrong for the one
+                          // above it: this is the largest thing a visitor sees first, so lazy
+                          // means the browser cannot start fetching it until layout has run, and
+                          // the metric that measures exactly that is the one it is worst for.
+                          // The cards further down keep the default. ?>
+                    <a class="featured-image" tabindex="-1" aria-hidden="true"
+                       href="<?= esc_attr(route_url($post_path.$lead['slug'])) ?>"><?=
+                        $mediaView->tag($thumbnails[$lead['id']], 'medium',
+                            ['alt' => '', 'loading' => 'eager', 'fetchpriority' => 'high'])
+                    ?></a>
+                <?php endif ?>
+                <div class="featured-details">
+                    <h2><a href="<?= esc_attr(route_url($post_path.$lead['slug'])) ?>"><?= esc_html($lead['title']) ?></a></h2>
+                    <p class="meta">
+                        <?php if (isset($authors[$lead['id']])): ?>by <?= esc_html($authors[$lead['id']]) ?> &mdash; <?php endif ?>
+                        <?= $dates->tag($lead['published_at']) ?>
+                    </p>
+                    <?php // drawn by the stylesheet only where there is room for them: over the
+                          // picture, a lead and a button would be most of the photograph ?>
+                    <div class="post-lead"><?= $lead['lead_html'] ?></div>
+                    <a class="read-more" href="<?= esc_attr(route_url($post_path.$lead['slug'])) ?>">Read more<span
+                        class="sr-only">: <?= esc_html($lead['title']) ?></span></a>
+                </div>
+            </article>
+            <?php if (count($featured_posts) > 1): ?>
+                <div class="featured-rest">
+                    <?php foreach (array_slice($featured_posts, 1) as $post): ?>
+                        <article class="featured-small<?= isset($thumbnails[$post['id']]) ? ' has-image' : '' ?>">
+                            <?php if (isset($thumbnails[$post['id']])): ?>
+                                <?php // `medium` and not `thumb`: the thumb preset is a *square crop*
+                                      // (320x320, cropped), so a 16:9 screenshot arrived with its sides
+                                      // already cut off before the stylesheet ever saw it. `medium` fits
+                                      // inside its box and keeps the ratio, and the list below asks for
+                                      // the same file, so this generates nothing new. ?>
+                                <a class="featured-thumbnail" tabindex="-1" aria-hidden="true"
+                                   href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>"><?=
+                                    $mediaView->tag($thumbnails[$post['id']], 'medium', ['alt' => ''])
+                                ?></a>
+                            <?php endif ?>
+                            <div class="featured-small-body">
+                                <h3><a href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>"><?= esc_html($post['title']) ?></a></h3>
+                                <p class="meta"><?= $dates->tag($post['published_at']) ?></p>
+                                <?php // shown from 1025px down, where the four stop being a column
+                                      // beside the picture and become entries of the list ?>
+                                <div class="post-lead"><?= $post['lead_html'] ?></div>
+                                <a class="read-more" href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>">Read more<span
+                                    class="sr-only">: <?= esc_html($post['title']) ?></span></a>
+                            </div>
+                        </article>
+                    <?php endforeach ?>
+                </div>
+            <?php endif ?>
+        </section>
+    <?php $this->endBlock() ?>
+<?php endif ?>
+<?php $this->startBlock('content') ?>
+    <?php if (($heading ?? '') !== ''): ?>
+        <h1 class="entry-title"><?= esc_html($heading) ?></h1>
+    <?php endif ?>
+    <?php if (empty($posts)): ?>
+        <p>Nothing published yet.</p>
+    <?php else: ?>
+        <?php foreach ($posts as $post): ?>
+            <?php // `has-image` because the picture and the words are two grid columns, and a
+                  // post without a picture should have the whole width rather than an empty 40% ?>
+            <article class="post-summary<?= isset($thumbnails[$post['id']]) ? ' has-image' : '' ?>">
+                <?php if (isset($thumbnails[$post['id']])): ?>
+                    <a class="post-thumbnail" tabindex="-1" aria-hidden="true"
+                       href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>"><?=
+                        $mediaView->tag($thumbnails[$post['id']], 'medium', ['alt' => ''])
+                    ?></a>
+                <?php endif ?>
+                <div class="post-summary-body">
+                    <h2><a href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>"><?= esc_html($post['title']) ?></a></h2>
+                    <p class="meta">
+                        <?php if (isset($authors[$post['id']])): ?>by <?= esc_html($authors[$post['id']]) ?> &mdash; <?php endif ?>
+                        <?= $dates->tag($post['published_at']) ?>
+                    </p>
+                    <?php // in a box of its own so the stylesheet can cut it off at a number of
+                          // lines: `lead_html` is HTML and a post written with no `---` separator
+                          // is *all* lead, so a listing would otherwise print whole articles ?>
+                    <div class="post-lead"><?= $post['lead_html'] ?></div>
+                    <?php // always here, whether or not the lead was cut: it is the way into the
+                          // post for anybody who does not know the title is a link. The title
+                          // rides along for a screen reader, where a page of identical
+                          // "Read more" links says nothing about where any of them go. ?>
+                    <a class="read-more" href="<?= esc_attr(route_url($post_path.$post['slug'])) ?>">Read more<span
+                        class="sr-only">: <?= esc_html($post['title']) ?></span></a>
+                </div>
+            </article>
+        <?php endforeach ?>
+    <?php endif ?>
+<?php $this->endBlock() ?>

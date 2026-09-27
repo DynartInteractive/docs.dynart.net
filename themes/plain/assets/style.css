@@ -1,0 +1,83 @@
+/* The whole design of the theme, served from `themes/plain/assets/` by `ThemeAssets`.
+   It was an inline <style> in the layout until there were two layouts to share it between. */
+
+:root { color-scheme: light dark; --rule: #d8cfc0; --ink: #2b2b2b; --paper: #fffdf8;
+        --quiet: #8a8175; --link: #7a5c3e; --column: 700px; --wide: 1040px; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.7 Georgia, "Times New Roman", serif;
+       background: var(--paper); color: var(--ink); }
+
+header { border-bottom: 3px double var(--rule); padding: 22px 20px; }
+.bar { max-width: var(--column); margin: 0 auto; display: flex; align-items: baseline; gap: 18px; }
+.bar a { color: var(--ink); text-decoration: none; }
+.bar .site { font-size: 22px; font-weight: 700; letter-spacing: -.5px; }
+.spacer { flex: 1; }
+/* the logout is a form so it can be a POST; in a header bar it should read as a link */
+.bar .logout { margin: 0; }
+.bar .logout button { background: none; border: 0; padding: 0; font: inherit;
+                      color: var(--link); cursor: pointer; }
+.menu { list-style: none; display: flex; gap: 14px; margin: 0; padding: 0; }
+.menu .menu { display: none; }
+
+main { max-width: var(--column); margin: 34px auto; padding: 0 20px; }
+h1 { font-size: 27px; margin: 0 0 18px; }
+
+/* --- the two shapes ---------------------------------------------------------------------- */
+
+/* the front page is a list of things to open, so it is wider and has nothing beside it */
+body.home .bar, body.home main { max-width: var(--wide); }
+body.home .post-summary h2 { font-size: 24px; }
+
+/* a post is a column of prose with what belongs beside it */
+body.post main.has-sidebar, body.page main.has-sidebar {
+    max-width: var(--wide); display: grid; gap: 40px;
+    grid-template-columns: minmax(0, 1fr) 220px;
+}
+.sidebar { font-size: 15px; }
+.sidebar .block { margin-bottom: 28px; }
+.sidebar .block-title { font-size: 14px; text-transform: uppercase; letter-spacing: .08em;
+                        color: var(--quiet); margin: 0 0 8px; }
+.sidebar ul { list-style: none; margin: 0; padding: 0; }
+.sidebar li { padding: 3px 0; }
+.sidebar a { color: var(--link); }
+@media (max-width: 860px) {
+    body.post main.has-sidebar, body.page main.has-sidebar { display: block; }
+    .sidebar { margin-top: 40px; border-top: 1px dotted var(--rule); padding-top: 24px; }
+}
+
+/* --- the rest ---------------------------------------------------------------------------- */
+
+.post-summary { padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px dotted var(--rule); }
+.post-summary h2 { font-size: 20px; margin: 0 0 4px; }
+.post-summary h2 a, .breadcrumb a, .meta a { color: var(--link); }
+.meta, .breadcrumb { color: var(--quiet); font-size: 14px; }
+.tag, .tag:visited { display: inline-block; border: 1px solid var(--rule); border-radius: 3px;
+       padding: 2px 9px; font-size: 13px; text-decoration: none; color: var(--link); margin: 0 4px 4px 0; }
+.page-nav { display: flex; gap: 14px; margin: 30px 0 0; }
+.page-count { color: var(--quiet); font-size: 14px; }
+
+/* nothing in a document may be wider than the column it is in */
+img, video { max-width: 100%; height: auto; }
+/* an iframe has no intrinsic shape, so it needs one told to it rather than kept */
+.dpress-embed { width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; display: block; }
+
+.attachments { list-style: none; padding: 0; }
+.attachments li { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.attachment-icon svg { width: 22px; height: 22px; color: var(--quiet); display: block; }
+
+input[type=text], input[type=password] { width: 100%; padding: 9px; border: 1px solid var(--rule);
+                                         font: inherit; background: #fff; }
+.form-field { margin-bottom: 15px; }
+.form-field label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.form-errors { border: 1px solid #c88; background: #fdf3f3; padding: 10px 14px; list-style: none; }
+button.primary { background: var(--link); color: #fff; border: 0; padding: 10px 20px;
+                 font: inherit; cursor: pointer; }
+
+footer { border-top: 1px dotted var(--rule); margin-top: 40px; padding: 18px 20px; }
+footer .bar { font-size: 14px; color: var(--quiet); }
+body.home footer .bar { max-width: var(--wide); }
+
+@media (prefers-color-scheme: dark) {
+    :root { --rule: #4a443c; --ink: #e8e2d8; --paper: #1c1a17; --quiet: #9a9186; --link: #c9a878; }
+    input[type=text], input[type=password] { background: #262320; color: inherit; }
+}

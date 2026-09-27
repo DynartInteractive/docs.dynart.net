@@ -1,0 +1,35 @@
+<?php // The header both layouts wear. Fetched with `$block`, so one file draws the top of the
+      // page and the bottom of it without either layout knowing which is which. ?>
+<?php if ($part === 'header'): ?>
+    <header>
+        <div class="bar">
+            <a class="site" href="<?= esc_attr(route_url('/')) ?>"><?= esc_html($site_name ?? '') ?></a>
+            <?= $main_menu ?? '' ?>
+            <span class="spacer"></span>
+            <?php if (!empty($current_user)): ?>
+                <a href="<?= esc_attr(route_url('/profile')) ?>"><?= esc_html($current_user->name() ?: 'Profile') ?></a>
+                <?php // a form and not a link: `/logout` is POST only, so that a link ending a
+                      // session cannot be followed by a prefetcher or an `<img>` on another page ?>
+                <form class="logout" method="post" action="<?= esc_attr(route_url('/logout')) ?>">
+                    <button type="submit">Log out</button>
+                </form>
+            <?php else: ?>
+                <a href="<?= esc_attr(route_url('/login')) ?>">Log in</a>
+                <?php if (!empty($registration_open)): ?>
+                    <a href="<?= esc_attr(route_url('/register')) ?>">Register</a>
+                <?php endif ?>
+            <?php endif ?>
+        </div>
+    </header>
+<?php else: ?>
+    <footer>
+        <div class="bar">
+            <?php // the `footer` place this theme declares. It used to print `$footer_menu`, a
+                  // variable nothing has ever set - so a menu assigned to the place the manifest
+                  // offered rendered nowhere. `$places` is what fills a place, menu and blocks. ?>
+            <?= $places->render('footer') ?>
+            <span class="spacer"></span>
+            <?= esc_html($site_name ?? '') ?>
+        </div>
+    </footer>
+<?php endif ?>

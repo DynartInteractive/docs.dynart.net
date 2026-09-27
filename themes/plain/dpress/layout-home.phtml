@@ -1,0 +1,27 @@
+<?php
+/**
+ * The front page - a list of things to open, so it is wide and has nothing beside it
+ *
+ * There is no `sidebar` here at all, and that is the feature rather than an omission: **a place
+ * only one layout renders is a place that only appears there.** A block put in `sidebar` shows
+ * up next to a post being read and stays off the front page, with no visibility rule to write
+ * and nothing to configure - the layout that does not ask for a place does not get it.
+ *
+ * `home_top` is the other half of the same idea: a place that exists only here, which is where a
+ * featured strip or a welcome note goes.
+ */
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<?= $this->fetch('theme:partial/head', ['title' => $title ?? '']) ?>
+</head>
+<body class="<?= esc_attr($layout_kind ?? '') ?>">
+<?= $this->fetch('theme:partial/chrome', ['part' => 'header']) ?>
+<main>
+    <?= $places->render('home_top') ?>
+    <?= $this->block('content') ?>
+</main>
+<?= $this->fetch('theme:partial/chrome', ['part' => 'footer']) ?>
+</body>
+</html>

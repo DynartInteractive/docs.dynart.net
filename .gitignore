@@ -1,0 +1,35 @@
+/vendor/
+/composer.lock
+
+# The site's own configuration: a database password and the secret every session is signed
+# with. `dpress.ini.example` is the shape of it, and the only copy that matters is the one on
+# the machine it belongs to - a committed one is either wrong everywhere or a secret in public.
+/dpress.ini
+/logs/*
+!/logs/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+.idea/
+/public/logs/
+
+# Generated image derivatives. A cache: Apache serves one when it exists and MediaController
+# makes it when it does not, so a checkout that has none is not missing anything.
+/public/uploads/**/*-thumb.*
+/public/uploads/**/*-medium.*
+/public/uploads/**/*-large.*
+
+# The Ko-fi plugin is its own repository, cloned in here the way a plugin is installed:
+# https://github.com/goph-R/dynart-dpress-kofi
+/plugins/kofi/
+
+# The Font Awesome plugin is its own repository, cloned in here the way a plugin is installed:
+# https://github.com/goph-R/dynart-dpress-fontawesome
+/plugins/fontawesome/
+
+# The Disqus plugin is its own repository, cloned in here the way a plugin is installed:
+# https://github.com/goph-R/dynart-dpress-disqus
+/plugins/disqus/
+
+# The Docs plugin is its own repository, cloned in here the way a plugin is installed:
+# https://github.com/goph-R/dynart-docs
+/plugins/docs/

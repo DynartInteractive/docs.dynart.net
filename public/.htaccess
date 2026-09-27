@@ -1,0 +1,89 @@
+RewriteEngine On
+
+# A trailing slash is a different URL for the same page, so canonicalise it rather than answer
+# both. The two halves of the problem look different and have one cause:
+#
+#   /category/development/  is a 404, because `?` in the route matches exactly one segment and
+#                           the empty segment after the slash makes three where two were wanted.
+#   /a-post/                is a 200, swallowed by the `/*` catch-all - which is worse, because
+#                           it is the same page at two URLs with nothing naming the real one.
+#
+# WordPress wrote trailing slashes, so anything migrating from it has them in Google's index and
+# in other people's links. This runs before the front controller and before PHP starts, so the
+# redirect costs no boot at all.
+#
+# `%{REQUEST_URI}` rather than the rule pattern: it is the whole path from the server root, so
+# this is correct both at a document root and under a subdirectory (a local /project/public).
+# Real directories are skipped - Apache's own DirectorySlash owns those.
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} ^(.+?)/+$
+RewriteRule ^ %1 [R=301,L,QSA]
+
+# Everything that is not a real file or directory goes to the front controller.
+# The router reads the path from the `route` parameter, so the rewrite has to pass it on.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=/$1 [QSA,L]
+
+# --- Compression ---
+#
+# Nothing was compressed before this: the front page went out as 22 KB where it gzips to 5, and
+# the stylesheet as 45 KB where it gzips to 14. That is ~48 KB off a first visit for a directive,
+# with no build step and nothing to keep in step.
+#
+# **Two rules, because a static file and a PHP response are compressed by different means, and
+# the second one is the whole story here.**
+#
+# Debian's own `mods-enabled/deflate.conf` already carries `AddOutputFilterByType DEFLATE
+# text/html` at *server* level - and this site's pages were still going out uncompressed. That is
+# not a scope problem: PHP is handled by `SetHandler "proxy:unix:...php-fpm.sock"`, and
+# `AddOutputFilterByType` chooses the filter from the content type *before* the request is
+# handled, while a proxied response does not have one until FPM sends its headers back. By then
+# the chain is built. The type test can never match, at any scope, in a vhost or here.
+#
+# So the dynamic half does not test the type at all. Every dynamic response on this site comes out
+# of `index.php` - the front controller is the only PHP file a request ever reaches - so
+# `SetOutputFilter` on that one file is exact, and it needs to know nothing about content types.
+#
+# The `no-gzip` line is the one thing that costs: `AssetController` serves the theme's fonts and
+# images through `index.php` too, and running a woff2 or a png through DEFLATE spends CPU to make
+# it marginally bigger. The request URI still ends in the real extension, so it is enough to look
+# at that.
+#
+# The static half is one line, and only for SVG: Debian's list covers html, css, js and xml
+# already, and misses `image/svg+xml`.
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE image/svg+xml
+
+    <Files "index.php">
+        SetOutputFilter DEFLATE
+        # **`THE_REQUEST`, not `Request_URI`.** By the time `SetEnvIf` is evaluated the front
+        # controller rewrite has already changed `r->uri` to `/index.php`, so a pattern on
+        # `Request_URI` matches nothing and every font went through DEFLATE - which made a
+        # woff2 *28 bytes bigger* and cost the CPU to do it. `THE_REQUEST` is the original
+        # request line and the rewrite does not touch it.
+        SetEnvIfNoCase THE_REQUEST "\.(?:woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|ico|mp4|webm|mp3|m4a|pdf|zip|gz)(\?[^ ]*)?\s" no-gzip dont-vary
+    </Files>
+</IfModule>
+
+# --- How long a static file may be kept ---
+#
+# The theme's own assets are served by PHP and already say `immutable` for a year; this is for
+# the files Apache hands over itself, which said nothing at all - so every upload was refetched
+# or revalidated on every visit.
+#
+# **A month for an upload, not a year.** An upload's URL never changes content, because the
+# suffix is random per file - but `dpress media:regenerate` rewrites the *derivatives* in place
+# when a preset changes, and a year would leave the old thumbnail in every cache that has one,
+# with no way to reach it. A month is the trade: still far better than nothing, and a preset
+# change is visible to everybody within weeks rather than never.
+#
+# Fonts and the like keep the year, because they change by being replaced under a new name.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(jpe?g|png|gif|webp|avif|svg|ico|mp4|webm|mp3|m4a|pdf)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    <FilesMatch "\.(woff2?|ttf|otf|eot)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>

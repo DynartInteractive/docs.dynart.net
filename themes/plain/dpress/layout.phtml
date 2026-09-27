@@ -1,0 +1,28 @@
+<?php
+/**
+ * The reading layout - a post, a page, and the account screens
+ *
+ * The default one: whatever kind of page a controller names, this is what renders unless the
+ * theme has a `layout-<kind>.phtml` beside it. So `archive` (a category or a tag) reads like a
+ * post, which is a decision made by *not* writing a file.
+ *
+ * The sidebar is asked for once, here, so the column can be left out rather than rendered empty.
+ */
+$sidebar = $places->render('sidebar');
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<?= $this->fetch('theme:partial/head', ['title' => $title ?? '']) ?>
+</head>
+<body class="<?= esc_attr($layout_kind ?? '') ?>">
+<?= $this->fetch('theme:partial/chrome', ['part' => 'header']) ?>
+<main class="<?= $sidebar === '' ? '' : 'has-sidebar' ?>">
+    <div><?= $this->block('content') ?></div>
+    <?php if ($sidebar !== ''): ?>
+        <aside class="sidebar"><?= $sidebar ?></aside>
+    <?php endif ?>
+</main>
+<?= $this->fetch('theme:partial/chrome', ['part' => 'footer']) ?>
+</body>
+</html>

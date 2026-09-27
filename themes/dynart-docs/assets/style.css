@@ -1,0 +1,859 @@
+/* Dynart Docs
+ *
+ * The gopherlab theme on docs.dynart.net's backgrounds: the layout, the type, the ink and
+ * everything else are gopherlab's; the surfaces are the ones the Sphinx site wears - its
+ * `custom.css` over Read the Docs. Warm dark greys under gopherlab's Dracula ink.
+ *
+ * Served from themes/dynart-docs/assets/ by `ThemeAssets`, so a `url()` in here resolves against
+ * /assets/theme/ and any picture put beside this file just works.
+ */
+
+:root {
+    color-scheme: dark;
+
+    /* surfaces */
+    --bg:        #1e1c1c;   /* the page, a shade under the bars */
+    --bar:       #242121;   /* header, menu, footer - the docs site's navigation */
+    --surface:   #2d2a2a;   /* where prose is read - the docs site's content */
+    --sunken:    rgba(0, 0, 0, .25);
+    --line:      #3d3939;
+    --rule:      #888888;   /* the docs site's rules */
+
+    /* ink - gopherlab's, unchanged */
+    --text:      #e2d9d9;
+    --dim:       #7d7d7d;
+    --heading:   #ffb86c;   /* Dracula orange */
+    --link:      #fff600;   /* the logo's yellow */
+    --accent:    #fffbc4;   /* a link under the pointer: the same yellow, most of the way to white */
+    --widget:    #fff600;   /* the logo's yellow */
+    --cyan:      #8be9fd;
+    --red:       #ff5555;
+
+    /* a button under the pointer - a background, so the docs site's side: the logo's cyan */
+    --pink:      #00d8ff;
+
+    /* metrics */
+    --container: 1280px;
+    --pad:       32px;   /* between the boxed edge and the content inside it */
+    --radius:    0;      /* squared: nothing in this design has a rounded corner */
+    --gap:       50px;
+    --featured-inset: 40px;   /* above and beside the small featured articles, equally */
+
+    /* Every card picture is cropped to one shape, so a row of them is a row rather than a ragged
+       edge - the original crops its own to 250x170, which is this. The sources are 4:3, 3:2 and
+       16:9 between them, and letting each keep its own is what made the strip look uneven. */
+    --card-ratio: 3 / 2;
+
+    /* The big one, a little taller than the 16/10 the original measures, so the four small cards
+       beside it sit in a column with the same space above them as below. Nudge this one number if
+       they do not come out level: smaller is taller. */
+    --hero-ratio: 3 / 2;
+
+    --font:      Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    --display:   "Roboto Condensed", sans-serif;
+    --mono:      monaco, consolas, "Andale Mono", "DejaVu Sans Mono", monospace;
+}
+
+/* Roboto Condensed, self-hosted: two variable files covering 100-900, so every heading weight
+ * comes out of one download. Served from this folder by `ThemeAssets`, which is why a bare
+ * filename works - the same URL as this stylesheet.
+ *
+ * `latin-ext` carries the Hungarian ő and ű; `unicode-range` means a page without them never
+ * asks for that file.
+ *
+ * **`optional`, not `swap`.** `swap` paints in the fallback and changes it a moment later, which
+ * is the flicker somebody actually sees. `optional` gives the font about 100ms to arrive and then
+ * commits for the whole page load: it either drew in Roboto Condensed from the first paint or it
+ * draws in the fallback and stays there. Preloaded in the head, and immutable for a year after
+ * the first visit, it wins that race - and the one time it does not, nothing moves.
+ *
+ * Inter is not here yet - the body falls back to the system UI face. Same two lines when wanted.
+ */
+@font-face {
+    font-family: "Roboto Condensed";
+    src: url(roboto-condensed-latin.woff2) format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: optional;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+                   U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+                   U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: "Roboto Condensed";
+    src: url(roboto-condensed-latin-ext.woff2) format("woff2");
+    font-weight: 100 900; font-style: normal; font-display: optional;
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+                   U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 18px/1.5 var(--font);
+    display: flex; flex-direction: column;
+    min-height: 100vh;    /* fallback for older browsers */
+    min-height: 100dvh;   /* the visible height on phones, where the address bar comes and goes */
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { color: var(--accent); }
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--display);
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--heading);
+    margin: 1.6em 0 .6em;
+}
+
+img, video { max-width: 100%; height: auto; }
+/* an iframe has no intrinsic shape, so it needs one told to it rather than kept */
+/* A video is a block of its own in the flow - the shortcode writes the element straight into
+   the content rather than inside a paragraph - and an `iframe` has no margin of its own, so
+   without this the next paragraph sits flush against it. The same bottom-only spacing a
+   paragraph gets, so what is above it is whatever that thing decided. */
+.dpress-video { margin: 0 0 1.5em; }
+.dpress-embed { width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; display: block; }
+
+
+/* The site is a box, 1280px at most, centred - so on a wide screen the page colour shows down
+   both sides and the header, the menu, the content and the footer all end at the same edge. The
+   bars are capped too rather than bleeding to the viewport: a full width bar over a boxed body is
+   the shape this design is not. */
+.site-header, .site-nav, .site-content, .site-footer {
+    max-width: var(--container); margin-left: auto; margin-right: auto;
+    /* the body is a flex column, and there auto side margins shrink a box to its content
+       rather than centring a full width one - so the width is said, and `max-width` caps it */
+    width: 100%;
+}
+/* inside the box, the inset is padding rather than a second width - one thing decides how wide
+   the site is, and it is `--container` */
+.container { width: 100%; margin: 0 auto; padding-left: var(--pad); padding-right: var(--pad); }
+
+@media (max-width: 700px) { :root { --pad: 16px; } }
+
+/* --- header ------------------------------------------------------------------------------- */
+
+/* no rules anywhere in the chrome: one surface meeting another is the whole separation, and a
+   1px line across it is a seam the original deliberately takes out */
+.site-header {
+    background: var(--bar);
+    border-image-source: linear-gradient(var(--bar) 0 0);
+    border-image-slice: 0 fill;
+    border-image-outset: 0 100vw;
+}
+.header-inner { display: flex; align-items: center; gap: 18px;
+                padding-top: 18px; padding-bottom: 18px; }
+
+/* On a wide screen the panel is not a box at all: `display: contents` drops it out of the
+   layout and hands its children to the header, which is a two column grid - the brand row
+   and the aside beside it, the menu bar across the bottom. Which is where all three were
+   before there was a panel, so the mobile grouping costs the desktop nothing. */
+@media (min-width: 780px) {
+    .site-header { display: grid; grid-template-columns: 1fr auto; }
+    .header-inner { grid-column: 1; grid-row: 1; }
+    .site-panel { display: contents; }
+    /* its own right inset, because it is no longer inside the `.container` that had one */
+    .header-aside { grid-column: 2; grid-row: 1; align-self: center; padding-right: var(--pad); }
+    /* `margin: 0`, against the `margin-left/right: auto` it carries as one of the four boxes
+       the site is wide: auto margins on a grid item stop it stretching, and the bar would
+       shrink to the width of its own links and sit in the middle. The header above it is
+       already held to `--container`, so it has nothing left to do here anyway. */
+    .site-nav { grid-column: 1 / -1; grid-row: 2; margin: 0; }
+}
+
+.brand { display: flex; align-items: center; gap: 16px; color: var(--text); }
+.brand:hover { color: var(--text); }
+/* The Dynart logo is a wordmark, 3.58 times as wide as it is tall: 473px is 132px high. A width
+   rather than a height, so on a screen narrower than that it shrinks with its proportions kept -
+   `min-width: 0` is what lets the brand give up room in the header's row at all. */
+.brand { min-width: 0; }
+.brand img { width: 230px; max-width: 100%; height: auto; }
+.site-title { font-family: var(--font); font-size: 37px; font-weight: 700; line-height: 1.1;
+              color: var(--accent); margin: 0; display: block; }
+.site-description { color: var(--text); font-weight: 700; font-size: 15px; margin: 2px 0 0;
+                    display: block; }
+.spacer { flex: 1; }
+
+/* the right hand column: the marks, and the account links under them */
+.header-aside { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.site-account { display: flex; align-items: center; gap: 9px; font-size: 15px; }
+
+/* The `|` between them, before every item that has one before it - so one link on its own
+   never gets one, and a third would need no rule of its own. Generated content and not
+   markup, because it is a rule about how a list looks and not a thing anybody wrote. */
+.site-account > * + *::before { content: '|'; margin-right: 9px; color: var(--line); }
+
+/* the logout is a form so that it can be a POST, and a form in a header should still look like
+   the links beside it rather than like a button dropped into the middle of them. Flex, so
+   that the separator above lands *beside* its button rather than on a line of its own. */
+.site-account .logout { display: flex; align-items: center; margin: 0; }
+.site-account .logout button {
+    background: none; border: 0; padding: 0; margin: 0;
+    font: inherit; color: var(--link); cursor: pointer;
+}
+.site-account .logout button:hover { background: none; color: var(--accent); }
+
+.site-social { display: flex; gap: 14px; align-items: center; }
+.site-social .menu { list-style: none; display: flex; gap: 16px; align-items: center; margin: 0; padding: 0; }
+.site-social a { color: var(--text); font-size: 16px; display: flex; align-items: center; }
+.site-social a:hover { color: var(--accent); }
+/* `currentColor` on the path, so a mark takes the colour of the link it sits in and the hover
+   costs no second rule. `1em` so it scales with the text a fallback label would have used. */
+.social-icon { width: 1.15em; height: 1.15em; display: block; }
+
+/* the menu bar under the header */
+.site-nav { background: var(--bar); }
+/* the menu items carry 16px of their own, so the bar's container gives that much less - which
+   puts the first item's *text* on the same left edge as the content underneath it */
+.site-nav .container { padding-left: calc(var(--pad) - 16px); padding-right: calc(var(--pad) - 16px); }
+.site-nav .menu { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; }
+.site-nav .menu > li { position: relative; }
+.site-nav .menu a {
+    display: block; padding: 16px 16px; color: #fff;   /* furniture: white, as the breadcrumb */
+    /* the body face: the original sets no family on its menu at all, so it inherits one */
+    font-family: var(--font); font-weight: 700; font-size: 19px; letter-spacing: .02em;
+    /* transparent to begin with, so appearing on hover moves nothing */
+    border-top: 1px solid transparent;
+}
+.site-nav .menu a:hover { color: var(--link); border-top-color: var(--link); }
+
+/* A submenu is a dropdown, and it opens on hover **and on focus**, so it is reachable by keyboard
+   without a line of JavaScript - `:focus-within` is what makes that true of a CSS-only menu. */
+.site-nav .menu .menu {
+    display: none; position: absolute; top: 100%; left: 0; z-index: 20;
+    flex-direction: column; gap: 0; min-width: 210px;
+    background: var(--bar); padding: 4px 0;
+}
+.site-nav .menu li:hover > .menu,
+.site-nav .menu li:focus-within > .menu { display: flex; }
+.site-nav .menu .menu a { padding: 10px 16px; font-size: 16px; border-top-color: transparent; }
+.site-nav .menu .menu a:hover { border-top-color: transparent; background: var(--sunken); }
+
+/* --- the narrow header ---------------------------------------------------------------- */
+
+/* Three bars drawn out of one box and its two pseudo elements, in `currentColor`, so the
+   hover and the open state are a colour and nothing more. Hidden until the script says it
+   works: `.js-nav` is written inline in the head, and without it the panel is simply open.
+
+   The padding is the tap target and the negative margin gives it back: the box reaches the
+   edge of the screen and a finger-width in from it, while the bars stay exactly `--pad`
+   from the edge, where they look like they belong. Nothing is drawn by the padding, so it
+   can be as generous as a thumb without showing anywhere. */
+.nav-toggle { display: none; background: none; border: 0; margin: 0;
+              padding: 14px var(--pad); margin-right: calc(var(--pad) * -1);
+              color: #fff; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* `:active` and `:hover` both, and both saying `background`, because the theme gives every
+   button a pink one on hover - and a tap on a touch screen *is* a hover, which it then
+   keeps until something else is touched. These two are not buttons in that sense: they are
+   a control drawn as a mark, and the only thing that should answer a finger is the colour. */
+.nav-toggle:hover, .nav-toggle:active, .nav-toggle[aria-expanded="true"] {
+    background: none; color: var(--accent);
+}
+/* smaller than the box around it, which is the point: the padding is what a thumb lands on
+   and the mark is only what says so */
+.nav-toggle-bars { position: relative; display: block; width: 24px; height: 2px;
+                   background: currentColor; }
+.nav-toggle-bars::before, .nav-toggle-bars::after {
+    content: ''; position: absolute; left: 0; width: 24px; height: 2px; background: currentColor;
+}
+.nav-toggle-bars::before { top: -8px; }
+.nav-toggle-bars::after { top: 8px; }
+
+/* The button beside a menu item that has pages under it. Two borders of a square, turned: a
+   chevron that needs no font and no file, and turning it the other way up is the open state.
+
+   It carries a wash of black so that it reads as a different thing to tap than the label
+   beside it - which it is: the label goes to a page, this one unfolds a list. A tint and
+   not a border, because a box drawn around it would look like a button somebody could press
+   *instead of* the item, rather than a part of the same row.
+
+   `display: none` until the panel shows it, so it is out of the tab order on every wide
+   screen rather than being a button somebody can reach where nothing happens. */
+.submenu-toggle { display: none; background: rgba(0, 0, 0, .1); border: 0; margin: 0;
+                  color: var(--link); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* the same `:active` as the hamburger, and for the same reason - the wash goes darker
+   instead of pink, which is a control answering a finger rather than a form button */
+.submenu-toggle:hover, .submenu-toggle:active, .submenu-toggle[aria-expanded="true"] {
+    background: rgba(0, 0, 0, .22); color: var(--accent);
+}
+.submenu-caret {
+    display: block; width: 11px; height: 11px;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    /* the box is turned about its own middle, and the nudge puts the *chevron* back on it */
+    transform: translateY(-3px) rotate(45deg);
+}
+.submenu-toggle[aria-expanded="true"] .submenu-caret {
+    transform: translateY(3px) rotate(225deg);
+}
+
+@media (max-width: 779px) {
+    /* the button on the right of the brand, and the panel under the two of them */
+    .js-nav .nav-toggle { display: block; }
+    .js-nav .site-panel { display: none; }
+    .js-nav .site-panel.is-open { display: block; }
+
+    /* A line above each row of the menu, and above the account row at the bottom. `.container >
+       .menu > li` and not `.menu > li`, because the second matches the items of a submenu too
+       - and a submenu is one item unfolded rather than four more rows of the menu. */
+    .site-panel .container > .menu > li,
+    .site-panel .site-social,
+    .site-panel .site-account { border-top: 1px solid var(--line); }
+    /* the row and not the marks in it: `.menu > li` above would have drawn one over each of
+       the three, which is a line between two icons standing side by side */
+    .site-panel .site-social .menu > li { border-top: 0; }
+
+    /* Everything in the panel is set to the right edge, under the button that opened it. The
+       inset goes on the link and not on the container around it, so that the line above each
+       row runs the whole width of the panel - the social and account rows below have no
+       container to be inset by, and three lines of three lengths is a stack of ledges. */
+    .site-nav .container { padding-left: 0; padding-right: 0; }
+    .site-nav .menu { display: block; }
+    .site-nav .menu a { text-align: right; padding: 14px var(--pad); font-size: 18px;
+                        border-top: 0; }
+
+    /* A submenu is a dropdown on a wide screen, where there is a pointer to hover with. Here
+       it is closed, and the button beside its item opens it - told apart from the rows of
+       the menu by being smaller and by having no line of its own, rather than by an indent,
+       which reads as nothing at all against a right edge. */
+    /* Everything about the button is on this one rule, `display` included, because `.js-nav` is
+       what says the script is there to work it - a browser running none gets no button and a
+       panel that is simply open, and that must stay true of every declaration here.
+
+       `stretch`, so the wash is the whole height of the row: a tinted square floating in a
+       taller row reads as a decoration, and the full column reads as the half of the row
+       that does something else. It is also the biggest target the row can give it. */
+    .js-nav .site-panel .submenu-toggle {
+        display: flex; align-items: center; justify-content: center;
+        align-self: stretch; order: -1; padding: 0 20px;
+    }
+    /* the item becomes a row of two, the caret on the left of the label so that every label
+       in the panel still ends on the same right edge, and the submenu on a line of its own */
+    .site-panel .has-children { display: flex; flex-wrap: wrap;
+                                align-items: center; justify-content: flex-end; }
+    .site-panel .has-children > a { padding-left: 14px; }
+    .site-panel .has-children > .menu { width: 100%; }
+    .site-panel .menu .menu {
+        display: none; position: static; min-width: 0; background: none; padding: 0;
+    }
+    .site-panel .menu .menu a { padding: 12px var(--pad); font-size: 16px; }
+    /* The two rules that open it on a wide screen have to be answered in their own words:
+       `li:hover > .menu` is a more specific selector than the one above. And then the open
+       state, last, because it matches exactly as specifically as they do. */
+    .site-nav .menu li:hover > .menu,
+    .site-nav .menu li:focus-within > .menu { display: none; }
+    .site-panel .menu li.is-open > .menu { display: block; }
+
+    .header-aside { display: block; }
+    .site-panel .site-social { justify-content: flex-end; padding: 16px var(--pad); }
+    .site-panel .site-social .menu { gap: 22px; }
+    .site-panel .site-social a { font-size: 19px; }
+    .site-panel .site-account { justify-content: flex-end; padding: 16px var(--pad);
+                                font-size: 17px; }
+}
+
+/* --- the two columns ---------------------------------------------------------------------- */
+
+/* the whole two column area is the lighter surface, and the page shows around it - so an
+   article is not a card on a background, it is text on the page it belongs to */
+.site-content {
+    background: var(--surface); padding: 40px 0 60px;
+    border-image-source: linear-gradient(var(--surface) 0 0);
+    border-image-slice: 0 fill;
+    border-image-outset: 0 100vw;
+}
+body.home .site-content { padding-top: 0; }
+
+.content-area { display: block; }
+.primary { min-width: 0; }
+
+/* The front page is the same two columns with the featured strip as a row above them, in one
+   grid rather than in two boxes - see `layout-home.phtml` for why. Below 768px it is a stack,
+   the same as everywhere else. */
+.home-area .featured { grid-column: 1 / -1; }
+
+@media (min-width: 768px) {
+    .content-area { display: flex; flex-wrap: wrap; }
+    .primary { width: 70.3125%; }
+    .sidebar { width: 29.6875%; padding-left: var(--gap); }
+
+    /* the same 70/30, said as columns - so the widths above are the grid's job here and the
+       two boxes must stop asking for a share of a share */
+    .home-area { display: grid; grid-template-columns: 70.3125% 1fr; align-items: start; }
+    .home-area .primary { grid-column: 1; width: auto; }
+    .home-area .sidebar { grid-column: 2; width: auto; }
+}
+
+/* The tablet, and the whole reason the front page is one grid: the four small cards leave the
+   full width row and join the reading column, and the sidebar comes up beside them instead of
+   starting level with the list. `display: contents` is what does it - the strip stops being a
+   box and its two halves become rows of the grid itself, so the picture can stay full width
+   while the four sit in a column that is 70% of it.
+
+   The sidebar is pinned only when there are four to sit beside. On a front page with one
+   featured post, or none at all, the rule does not match and ordinary placement puts it
+   level with the list, which is where it belongs when there is nothing above it. */
+@media (min-width: 780px) and (max-width: 1024px) {
+    .home-area .featured { display: contents; }
+    .home-area .featured-lead { grid-column: 1 / -1; margin-bottom: var(--gap); }
+    .home-area .featured-rest { grid-column: 1; margin-bottom: var(--gap); }
+    .home-area:has(.featured-rest) .sidebar { grid-row: 2 / span 2; }
+}
+@media (max-width: 767px) {
+    .sidebar { margin-top: 50px; }
+}
+
+/* --- the featured strip, front page only -------------------------------------------------- */
+
+/* flush to the menu: the big picture is the top of the page, and a gap above it reads as the
+   page not having started yet */
+.featured { display: grid; gap: 20px; margin: 0 0 50px; padding-top: 0; }
+/* a block in `home_top` is the one thing that legitimately goes above the picture, so it brings
+   its own spacing rather than the strip carrying padding for a place that is usually empty */
+.home-top { padding-top: 30px; padding-bottom: 30px; }
+
+/* 60/40, which is **not** the 70/30 of the columns under it: the big card is a picture and wants
+   less width than a column of prose, and the four small ones want more than a sidebar. Their text
+   still lands on the sidebar's left edge; the thumbnails sit out to the left of it. */
+@media (min-width: 1025px) {
+    /* `start`, because a stretched grid item ignores its own `aspect-ratio` - the row would
+       size the big card and the ratio would never apply */
+    .featured { grid-template-columns: 60% 40%; gap: 0; align-items: start; }
+    /* only the big picture meets the menu bar. The small ones are a list of headings, and a
+       list of headings hard against the bar above it has nothing separating it from the bar -
+       and the same inset above as beside, from one value so they cannot drift apart. */
+    /* The four cards **centred** in the height the picture sets, so the space above them is the
+       space below them - whatever the titles do. A number here could not manage that: a card
+       with a three line title is taller than one with a single line, so any inset that looked
+       right on today's front page would be wrong on tomorrow's.
+
+       `align-self: stretch` because the row is set to `start` for the picture's sake, and this
+       column is the one that does want the whole height. */
+    .featured-rest {
+        align-self: stretch; display: flex; flex-direction: column; justify-content: center;
+        padding: var(--featured-inset) 0 var(--featured-inset) var(--featured-inset);
+    }
+    /* the last card carries no gap of its own, or the space under the four would be the inset
+       plus its margin while the space above them was the inset alone */
+    .featured-rest .featured-small:last-child { margin-bottom: 0; }
+    /* one featured post is a banner, not a two column grid with a hole in it */
+    .featured-solo { grid-template-columns: 1fr; }
+}
+
+/* The shape is the card's, not the file's: without it the big picture stretched to whatever
+   height the four small ones happened to need, so the front page had a different banner every
+   time a post was featured or unfeatured. */
+.featured-lead { position: relative; display: block; overflow: hidden; border-radius: var(--radius);
+                 aspect-ratio: var(--hero-ratio); }
+/* the picture is a link of its own inside the card - the card cannot be one, because it
+   carries a "Read more" further down and a link inside a link is not a thing HTML has */
+.featured-lead .featured-image { display: block; width: 100%; height: 100%; }
+.featured-lead img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* No picture is the ordinary case, not the exception: a post need not have one, and the one it
+   had can be put in the bin at any time. So the title sits in a panel of its own by default and
+   moves *onto* the picture only when there is one - an overlay with nothing under it is a card
+   with no height, which is a post that has silently vanished from the front page. */
+.featured-lead .featured-details {
+    display: block; background: var(--sunken); padding: 24px; border-radius: var(--radius);
+}
+.featured-lead.has-image .featured-details {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, .75); padding: 30px;
+}
+/* white over the picture rather than orange: the overlay is already dark, and the heading colour
+   that reads on the page does not read on a photograph. On the panel it is a heading again. */
+.featured-lead h2 { font-size: 35px; margin: 0 0 8px; color: var(--heading); }
+.featured-lead.has-image h2 { color: #fff; }
+.featured-lead .meta { margin: 0; }
+.featured-lead.has-image .meta { color: #cfcfcf; }
+
+/* `inherit`, so the heading keeps deciding its own colour - white over a picture, orange on
+   the panel - and the link inside it does not quietly become a link blue in either place */
+.featured-lead h2 a, .featured-small h3 a { color: inherit; }
+.featured-lead h2 a:hover, .featured-small h3 a:hover { color: var(--accent); }
+
+/* The lead and the way in are in the markup of every featured card and drawn on none of
+   them here: over a picture they would be most of the photograph, and beside it, in the
+   40% column, they are a paragraph in a space meant for a heading. The two media queries
+   below turn them on where there is room - the small ones from 1024px down, the big one
+   only below 780px, where it has stopped being a hero. */
+.featured .post-lead, .featured .read-more { display: none; }
+/* Everything the clamp needs except the `display` that switches it on, which is the media
+   queries' to give: `-webkit-box` and `none` are the same property, so the two cannot be
+   written in one place. Four lines, the same as the list. */
+.featured .post-lead {
+    -webkit-box-orient: vertical; -webkit-line-clamp: 4; line-clamp: 4;
+    overflow: hidden; font-size: 16px;
+}
+
+/* a row each: thumbnail, then title and date - stacked down the sidebar's width */
+.featured-small { display: grid; grid-template-columns: 1fr; gap: 16px;
+                  align-items: start; margin-bottom: 24px; }
+.featured-small.has-image { grid-template-columns: 120px 1fr; }
+/* Cropped to the card shape rather than to the preset's. `medium` is a *fitted* derivative, so
+   the file keeps its own proportions and the crop happens here, once, where the shape is
+   decided - rather than in a 320x320 preset that squares everything before a stylesheet has
+   a say. */
+.featured-small .featured-thumbnail { display: block; }
+.featured-small img { width: 120px; aspect-ratio: var(--card-ratio); object-fit: cover;
+                      display: block; border-radius: var(--radius); }
+.featured-small h3 { font-size: 18px; margin: 0 0 6px; color: var(--text); line-height: 1.35; }
+.featured-small .meta { margin: 0; font-size: 14px; }
+.featured-small:hover h3 { color: var(--accent); }
+
+/* Below 1025px the four stop being a column beside the picture: there is no column, and a row
+   of a 120px thumbnail and a heading across the whole width is a card stretched into a
+   ledge. So they become entries of the list - the same picture, the same clamped lead, the
+   same way in - and the front page reads as one stream under the banner.
+
+   This is also what puts them back on the page at all. They used to be hidden below 1025px,
+   and a featured post is left out of the list underneath, so between a phone and a laptop
+   four posts were nowhere. */
+@media (max-width: 1024px) {
+    .featured { gap: var(--gap); margin-bottom: var(--gap); }
+    .featured-rest { display: block; }
+    .featured-small, .featured-small.has-image { display: block; margin: 0 0 var(--gap); }
+    .featured-rest .featured-small:last-child { margin-bottom: 0; }
+    .featured-small img {
+        width: 100%; height: auto; aspect-ratio: var(--card-ratio); object-fit: cover;
+        display: block; margin-bottom: 16px;
+    }
+    .featured-small h3 { font-size: 29px; line-height: 1.2; margin: 0 0 10px; color: var(--link); }
+    .featured-small .meta { font-size: 16px; margin: 0 0 12px; }
+    .featured-small .post-lead { display: -webkit-box; }
+    .featured-small .read-more { display: inline-block; }
+}
+
+/* And below 780px the banner goes with them. A hero with its title over the picture is a
+   shape that needs width: at 360px the overlay is most of the card and the title is three
+   lines of white on a photograph. So it takes the same shape as the rest, lead and all, and
+   the front page is one list from the very top. */
+@media (max-width: 779px) {
+    .featured { display: block; }
+    /* The list entry's own bottom margin, so the two kinds space alike. And the ratio moves to
+       the picture, because it is the picture that is cropped here - the card is only as tall
+       as what is in it. */
+    .featured-lead { display: block; margin: 0 0 var(--gap); aspect-ratio: auto; }
+    .featured-lead .featured-image { height: auto; }
+    .featured-lead img {
+        width: 100%; height: auto; aspect-ratio: var(--card-ratio); object-fit: cover;
+        display: block; margin-bottom: 16px;
+    }
+    /* off the picture and under it, which is where the list keeps its titles */
+    .featured-lead .featured-details,
+    .featured-lead.has-image .featured-details {
+        position: static; display: block; background: none; padding: 0;
+    }
+    .featured-lead h2, .featured-lead.has-image h2 {
+        font-size: 29px; line-height: 1.2; margin: 0 0 10px; color: var(--link);
+    }
+    .featured-lead .meta, .featured-lead.has-image .meta {
+        color: var(--dim); font-size: 16px; margin: 0 0 12px;
+    }
+    .featured-lead .post-lead { display: -webkit-box; }
+    .featured-lead .read-more { display: inline-block; }
+    /* the strip is flush to the menu bar because a hero is the top of the page. A list is not,
+       and wants the same air above it as every other page has */
+    body.home .site-content { padding-top: 40px; }
+}
+
+/* --- the list of posts -------------------------------------------------------------------- */
+
+.post-summary { margin-bottom: var(--gap); }
+.post-summary h2 { font-size: 29px; margin: 0 0 10px; }
+.post-summary h2 a { color: var(--link); }
+.post-summary h2 a:hover { color: var(--accent); }
+.post-summary .post-thumbnail { display: block; margin-bottom: 16px; }
+/* the same shape as the small featured cards, so the front page has one card picture and not two */
+.post-summary .post-thumbnail img { width: 100%; aspect-ratio: var(--card-ratio);
+                                   object-fit: cover; border-radius: var(--radius); display: block; }
+
+/* The lead is cut here rather than when it is written, because `lead_html` is HTML - a
+   character count through it would take a tag off mid-word - and because a post with no `---`
+   separator is *all* lead, so a listing would otherwise print whole articles. Clamped to a
+   number of lines, and the browser writes the ellipsis itself at the exact point the text
+   stops fitting, which no server-side guess at an average line length can do. */
+.post-summary .post-lead {
+    display: -webkit-box; -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4; line-clamp: 4;
+    overflow: hidden;
+    /* said rather than inherited: it took the base size with it when that went up, and an
+       excerpt is meant to read smaller than the article it is an excerpt of */
+    font-size: 16px;
+}
+/* the clamp counts the lines inside, so the paragraphs must not push it about with their own
+   margins at either end */
+.post-summary .post-lead > :first-child, .featured .post-lead > :first-child { margin-top: 0; }
+.post-summary .post-lead > :last-child, .featured .post-lead > :last-child { margin-bottom: 0; }
+
+/* There whether or not the lead was cut. Somebody who has read the whole lead still needs the
+   way in, and it is not obvious to everybody that the title is a link. */
+.read-more { display: inline-block; margin-top: 14px; font-family: var(--display); font-weight: 700; }
+.read-more:hover { color: var(--accent); }
+
+@media (min-width: 1025px) {
+    /* The picture beside the words rather than above them, which is the front page's whole
+       shape. Two columns rather than a float, because the words are a *block* now - the lead
+       has to be a box of its own to be clamped - and a block beside a float is a layout that
+       depends on which of the two happens to be taller. 40% as a proportion rather than a
+       pixel width, so the balance holds at every width and not only at the measured one. */
+    .post-summary.has-image { display: grid; grid-template-columns: 40% 1fr; gap: 24px; align-items: start; }
+    /* a grid item will not shrink below its longest unbreakable word without this, so one bare URL
+       in a lead would push the picture column out of shape */
+    .post-summary.has-image .post-summary-body { min-width: 0; }
+    .post-summary .post-thumbnail { margin: 0; }
+}
+
+/* Said only to a screen reader: a page of links that all read "Read more" says nothing about
+   where any of them goes. Not `display: none`, which takes it out of the accessibility tree
+   along with everything else. */
+.sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.meta { color: var(--dim); font-size: 16px; margin: 0 0 12px; }
+.meta a { color: var(--dim); }
+.meta a:hover { color: var(--accent); }
+
+.cat-links { margin: 0 0 12px; }
+.cat-links a {
+    display: inline-block; background: var(--sunken); color: var(--text);
+    font-size: 15px; padding: 4px 11px; border-radius: var(--radius); margin: 0 4px 4px 0;
+}
+.cat-links a:hover { color: var(--accent); }
+
+/* --- a post being read -------------------------------------------------------------------- */
+
+.entry-title { font-size: 38px; margin: 0 0 12px; }
+
+.entry-content { color: var(--text); font-size: 17px; line-height: 1.7; }
+.entry-content > :first-child { margin-top: 0; }
+.entry-content > :last-child { margin-bottom: 0; }
+/* Paragraphs were on the browser default, which is `1em` top and bottom collapsing to one
+   17px gap - tight for prose at this line height. A bottom margin only, so what sits
+   between two paragraphs is one number rather than the larger of two. */
+.entry-content p { margin: 0 0 1.5em; }
+.entry-content h2 { font-size: 26px; }
+.entry-content h3 { font-size: 22px; }
+/* In the headings' orange, and underlined, always - the prose's links belong to the text, so they
+   take the text's own accent, and the line says "link" whatever the colour. Only here: the menu,
+   the sidebar and the header are all links and need no line to say so. A picture that is a link
+   gets none, it would be a stray line under the image. */
+.entry-content a { color: var(--heading); text-decoration: underline; text-underline-offset: 2px; }
+.entry-content a:has(> img) { text-decoration: none; }
+.entry-content a:hover { color: var(--accent); }
+.entry-content img { border-radius: var(--radius); }
+.entry-content figure { margin: 1.6em 0; text-align: center; }
+.entry-content figcaption { color: var(--dim); font-size: 16px; margin-top: 8px; }
+
+.entry-content code {
+    background: var(--sunken); color: var(--text);
+    font-family: var(--mono); font-size: .95em;
+    padding: .25em; border-radius: var(--radius);
+}
+/* a fenced block already has a background from the highlighter, so it must not get a second one.
+   `overscroll-behavior-x` is for the phone: a block that scrolls sideways is a block a thumb
+   swipes in, and the swipe would otherwise chain to the page once the code runs out - which
+   under Chrome's gesture navigation is the back gesture. This rule is for the un-highlighted
+   block; the highlighter's own element gets the same from `CodeAssets::STYLE`. */
+.entry-content pre { overflow-x: auto; overscroll-behavior-x: contain;
+                     border-radius: var(--radius); }
+.entry-content pre code { background: none; padding: 0; }
+
+.entry-content blockquote {
+    margin: 1.6em 0; padding: .5em 0 .5em 1.2em;
+    border-left: 4px solid var(--rule); color: var(--dim);
+}
+
+.entry-content table { width: 100%; border-collapse: collapse; margin: 1.6em 0; display: block;
+                       overflow-x: auto; overscroll-behavior-x: contain; }
+.entry-content th, .entry-content td { border: 0; padding: 8px 12px; text-align: left; }
+.entry-content thead th { color: var(--heading); font-family: var(--display); }
+.entry-content tbody tr:nth-child(odd) { background: var(--sunken); }
+/* the column alignment a table says with `|---:|`. The renderer writes it as an attribute, and
+   a stylesheet that sets `text-align` on every cell without answering it silently throws away
+   what the author asked for. */
+.entry-content th[align='right'], .entry-content td[align='right'] { text-align: right; }
+.entry-content th[align='center'], .entry-content td[align='center'] { text-align: center; }
+
+
+/* A picture beside a list: an avatar and a row of contact links, which is a *layout* and not a
+   table - a table would be announced as one and, with `overflow-x: auto` on it, would scroll
+   sideways on a phone instead of stacking.
+
+   The shape is the selector: a paragraph holding nothing but an image, immediately followed by
+   a list. `:has()` is what makes that expressible - markdown cannot put a class on anything, so
+   the only handle is the structure the author wrote.
+
+   Only above 700px. Below it the float is simply not applied and the two stack, which is the
+   whole reason for doing it this way. */
+@media (min-width: 700px) {
+    .entry-content p:has(> img:only-child):has(+ ul) {
+        float: left; margin: 0 10px 10px 0; max-width: 180px;
+    }
+    /* `overflow: hidden` makes the list its own formatting context, so it sits *beside* the
+       float in a column of its own rather than wrapping its lines around it */
+    .entry-content p:has(> img:only-child):has(+ ul) + ul { overflow: hidden; }
+}
+/* Outside the query, because this is what the list *is* rather than how it sits beside the
+   picture: no bullets, an indent of its own, and no margin. A row of contact links is a list
+   for the sake of being a list of things, not a list somebody is counting through. */
+.entry-content p:has(> img:only-child):has(+ ul) + ul {
+    list-style: none; padding-left: 1em; margin: 0;
+}
+/* and the float ends where the content does, however tall the picture turned out to be */
+.entry-content::after { content: ""; display: block; clear: both; }
+
+/* --- rules -------------------------------------------------------------------------------- */
+/* A dotted line in the rule colour, in place of the browser's inset one - a border rather than
+   a height, so it is one pixel whatever the zoom. */
+
+hr { border: 0; border-top: 1px dotted var(--rule); height: 0; margin: 2em 0; }
+
+/* --- callouts ----------------------------------------------------------------------------- */
+/* `> [!WARNING]` in the markdown. The site drew these by hand as `.gopherlab-panel`; dpress
+ * renders them itself now, so what was markup in the document is a class here. */
+
+.entry-content .callout {
+    padding: 12px 16px; margin: 1.6em 0;
+    border-left: 8px solid var(--rule); background: var(--sunken);
+}
+.entry-content .callout > :first-child { margin-top: 0; }
+.entry-content .callout > :last-child { margin-bottom: 0; }
+/* the docs site's admonitions underneath - a fifth of the colour, the colour itself as the bar -
+   and gopherlab's ink on top */
+.entry-content .callout-info    { background: rgba(24, 73, 148, .2);  color: var(--cyan);    border-left-color: #184994; }
+.entry-content .callout-warning { background: rgba(148, 80, 24, .2);  color: var(--heading); border-left-color: #945018; }
+.entry-content .callout-danger  { background: rgba(117, 36, 28, .2);  color: var(--red);     border-left-color: #75241c; }
+.entry-content .callout a { color: inherit; text-decoration: underline; }
+
+/* --- pages within a post ------------------------------------------------------------------ */
+
+.page-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 30px 0 0; }
+.page-numbers { display: flex; flex-wrap: wrap; gap: 6px; }
+.page-number {
+    display: inline-block; min-width: 40px; text-align: center;
+    padding: 8px 14px; background: var(--sunken); color: var(--link); border-radius: var(--radius);
+}
+.page-number:hover { background: var(--line); color: var(--accent); }
+.page-number.current { background: var(--accent); color: #10111a; font-weight: 700; }
+.page-prev, .page-next { padding: 8px 14px; background: var(--sunken); border-radius: var(--radius); }
+
+/* The way around, in white rather than the link yellow: the menu (above, in its own rule), the
+   documentation tree, the breadcrumb and the previous / next buttons are furniture, and yellow is
+   kept for the links a writer put in the text. Under the pointer they take the yellow. */
+.breadcrumb a, a.page-prev, a.page-next, .sidebar .docs-tree a { color: #fff; }
+.breadcrumb a:hover, a.page-prev:hover, a.page-next:hover, .sidebar .docs-tree a:hover { color: var(--link); }
+
+/* --- tags, attachments -------------------------------------------------------------------- */
+
+.tags { margin: 24px 0 0; }
+.tags .tag, .tags .tag:visited {
+    display: inline-block; background: #1a1818; color: #fff;
+    font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    padding: 5px 9px; border-radius: var(--radius); margin: 0 4px 4px 0;
+}
+.tags .tag:hover { background: var(--line); color: var(--accent); }
+
+.attachments { list-style: none; padding: 0; }
+.attachments li { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+.attachment-icon svg { width: 22px; height: 22px; color: var(--dim); display: block; }
+
+/* --- the sidebar -------------------------------------------------------------------------- */
+
+.sidebar .block { margin-bottom: 40px; }
+.sidebar .block-title {
+    color: var(--widget); font-family: var(--display); font-size: 23px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .02em;
+    border-bottom: 1px solid var(--rule); padding-bottom: 8px; margin: 0 0 20px;
+}
+.sidebar ul { list-style: none; margin: 0; padding: 0; }
+.sidebar li { padding: 5px 0; }
+.sidebar li ul { padding-left: 16px; }
+.sidebar a { color: var(--link); }
+.sidebar a:hover { color: var(--accent); }
+.sidebar .tag-cloud a, .sidebar .tag-cloud a:visited { color: var(--text); }
+.sidebar .tag-cloud a:hover { color: var(--accent); }
+
+/* The block already says how heavily each tag is used - `tag-1` to `tag-5`, a bucket over the
+   range it found - and without a size for them a cloud is a list of the same word repeated.
+   The block decides what is popular; this decides what popular looks like.
+
+   `inline-block` and a line-height, because a row of mixed sizes on a shared baseline is what
+   makes a cloud look like a mistake rather than a cloud. */
+.sidebar .tag-cloud { line-height: 1.9; }
+.sidebar .tag-cloud a { display: inline-block; margin-right: 9px; }
+.sidebar .tag-cloud .tag-1 { font-size: 14px; opacity: .75; }
+.sidebar .tag-cloud .tag-2 { font-size: 16px; opacity: .85; }
+.sidebar .tag-cloud .tag-3 { font-size: 19px; }
+.sidebar .tag-cloud .tag-4 { font-size: 22px; }
+.sidebar .tag-cloud .tag-5 { font-size: 25px; font-family: var(--display); font-weight: 700; }
+
+/* The Ko-fi button, which is a plugin: it ships its own stylesheet and that one draws the
+   shape - the flex row, the pill, the cup. What is left here is what a plugin has no business
+   deciding, which is the voice: this theme's display face, and a size that does not follow the
+   base size the site was raised to, because a button is a label rather than prose.
+
+   Nothing here may repeat a property the plugin sets. Its file is put in the head *after* this
+   one, so on anything both of them say, the plugin wins - which is the right way round for a
+   shape and the wrong way round for a font. Keeping to different properties is what makes the
+   two agree rather than fight. */
+.kofi-description { color: var(--text); font-size: 16px; }
+.kofi-button { font-family: var(--display); font-weight: 700; font-size: 15px; }
+
+/* --- footer ---
+---------------------------------------------------------------------------- */
+
+/* the original's footer is one bar - a widget area is there if a site fills it, and this site
+   does not, so with an empty `footer` place the bar is all that renders */
+.site-footer {
+    background: var(--surface); color: #ccc; padding: 0;
+    border-image-source: linear-gradient(var(--surface) 0 0);
+    border-image-slice: 0 fill;
+    border-image-outset: 0 100vw;
+    flex-grow: 1;
+}
+.site-footer .footer-widgets { padding-top: 40px; }
+.footer-widgets { display: grid; gap: 40px; grid-template-columns: 1fr; }
+@media (min-width: 768px) { .footer-widgets { grid-template-columns: repeat(3, 1fr); } }
+.site-footer .block-title {
+    color: var(--widget); font-family: var(--display); font-size: 20px; font-weight: 700;
+    text-transform: uppercase; border-bottom: 1px solid var(--rule);
+    padding-bottom: 8px; margin: 0 0 16px;
+}
+.site-footer ul { list-style: none; margin: 0; padding: 0; }
+.site-footer li { padding: 4px 0; }
+.site-footer .menu { display: block; }
+.footer-bottom { padding: 22px 0; font-size: 15px; color: #ccc;
+                 display: flex; gap: 16px; align-items: center;
+                 /*border-top: 1px solid var(--rule)*/}
+.footer-widgets + .footer-bottom { margin-top: 40px; }
+/* the small print centred, with the bullet in the spacer between the two - so the spacer is
+   only as wide as the bullet rather than the stretch that pushes the two apart in the header */
+.footer-bottom { justify-content: center; flex-wrap: wrap; }
+.footer-bottom .spacer { flex: none; }
+
+/* --- forms, for the account screens -------------------------------------------------------- */
+
+.form-field { margin-bottom: 16px; }
+.form-field label { display: block; font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+input[type=text], input[type=password], input[type=email], textarea, select {
+    width: 100%; padding: 10px; font: inherit;
+    background: var(--line); color: #f8f8f2; border: 1px solid var(--rule);
+    border-radius: var(--radius);
+}
+.form-errors { border: 1px solid var(--red); background: rgba(117, 36, 28, .35); color: var(--text);
+               padding: 10px 14px; list-style: none; border-radius: var(--radius); }
+button, button.primary, input[type=submit] {
+    background: var(--sunken); color: var(--text); border: 1px solid var(--line);
+    padding: 10px 20px; font: inherit; cursor: pointer; border-radius: var(--radius);
+}
+button:hover, button.primary:hover, input[type=submit]:hover {
+    background: var(--pink); color: #10111a; border-color: var(--pink);
+}
+
+.links { margin-top: 40px; }

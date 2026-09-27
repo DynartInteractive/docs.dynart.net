@@ -1,0 +1,30 @@
+# Uploaded files are data, never code. Written by dpress - `dpress media:protect` rewrites it.
+#
+# Every directive is inside an <IfModule> on purpose: Apache does not ignore one it does not
+# know, it answers 500 for the whole directory. `php_flag` is mod_php, so without a guard this
+# file turns every image into a server error under PHP-FPM.
+
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php5.c>
+    php_flag engine off
+</IfModule>
+
+# The real lock, and the one that works whatever PHP is running as: these are not served at all,
+# so there is nothing left to interpret.
+<FilesMatch "\.(php|phtml|php[0-9]|phar|pl|py|cgi|asp|aspx|sh|htaccess)$">
+    Require all denied
+</FilesMatch>
+
+# SVGs are sanitised on the way in. This stops anything that got past the sanitiser - or that
+# predates it - from running when the file is opened directly.
+<IfModule mod_headers.c>
+    <FilesMatch "\.svg$">
+        Header set Content-Security-Policy "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+</IfModule>
