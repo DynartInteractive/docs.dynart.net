@@ -31,5 +31,5 @@
 /plugins/disqus/
 
 # The Docs plugin is its own repository, cloned in here the way a plugin is installed:
-# https://github.com/goph-R/dynart-docs
+# https://github.com/goph-R/dynart-dpress-docs
 /plugins/docs/
